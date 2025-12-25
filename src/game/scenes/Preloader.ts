@@ -40,6 +40,9 @@ export class Preloader extends Scene
             frameHeight: 192,
         });
 
+        // Load floor tile
+        this.load.image('brickfloor', 'brickfloor.png');
+
         // Load enemy sprites
         this.load.image('enemy-C', 'enemies/enemy-C.png');
         this.load.image('enemy-D', 'enemies/enemy-D.png');

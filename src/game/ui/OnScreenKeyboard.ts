@@ -2,16 +2,21 @@
 import { Scene, GameObjects } from 'phaser';
 import { NOTES, NoteName, NOTE_NAMES } from '../NoteDefinitions';
 
-const { Rectangle, Ellipse, Text } = GameObjects;
-
 export type KeyPressCallback = (note: NoteName) => void;
+
+interface KeyElements {
+    bg: GameObjects.Rectangle;
+    sticker: GameObjects.Ellipse;
+    label: GameObjects.Text;
+}
 
 export class OnScreenKeyboard {
     private scene: Scene;
-    private container: GameObjects.Container;
-    private keys: Map<NoteName, GameObjects.Container> = new Map();
+    private keys: Map<NoteName, KeyElements> = new Map();
+    private allElements: (GameObjects.Rectangle | GameObjects.Ellipse | GameObjects.Text)[] = [];
     private onKeyPress: KeyPressCallback | null = null;
     private isVisible: boolean = true;
+    private y: number;
 
     private readonly KEY_WIDTH = 80;
     private readonly KEY_HEIGHT = 120;
@@ -20,47 +25,64 @@ export class OnScreenKeyboard {
 
     constructor(scene: Scene, y: number = 700) {
         this.scene = scene;
-        this.container = scene.add.container(0, y);
-        this.container.setScrollFactor(0);
-        this.container.setDepth(200);
-
+        this.y = y;
         this.createKeys();
     }
 
     private createKeys(): void {
         NOTE_NAMES.forEach((note, index) => {
             const x = this.START_X + index * (this.KEY_WIDTH + this.KEY_SPACING);
-            const keyContainer = this.createKey(note, x);
-            this.keys.set(note, keyContainer);
-            this.container.add(keyContainer);
+            this.createKey(note, x);
         });
     }
 
-    private createKey(note: NoteName, x: number): GameObjects.Container {
+    private createKey(note: NoteName, x: number): void {
         const noteData = NOTES[note];
-        const keyContainer = this.scene.add.container(x, 0);
 
-        // Key background (white key)
-        const keyBg = new Rectangle(this.scene, 0, 0, this.KEY_WIDTH, this.KEY_HEIGHT, 0xffffff);
-        keyBg.setOrigin(0, 0);
+        // Key background (white key) - add directly to scene, not container
+        const keyBg = this.scene.add.rectangle(
+            x + this.KEY_WIDTH / 2,
+            this.y + this.KEY_HEIGHT / 2,
+            this.KEY_WIDTH,
+            this.KEY_HEIGHT,
+            0xffffff
+        );
         keyBg.setStrokeStyle(2, 0x333333);
+        keyBg.setScrollFactor(0);
+        keyBg.setDepth(200);
         keyBg.setInteractive({ useHandCursor: true });
 
         // Color sticker on the key
-        const sticker = new Ellipse(this.scene, this.KEY_WIDTH / 2, this.KEY_HEIGHT - 30, 50, 50, noteData.color);
+        const sticker = this.scene.add.ellipse(
+            x + this.KEY_WIDTH / 2,
+            this.y + this.KEY_HEIGHT - 30,
+            50,
+            50,
+            noteData.color
+        );
         sticker.setStrokeStyle(3, this.darkenColor(noteData.color, 0.3));
+        sticker.setScrollFactor(0);
+        sticker.setDepth(201);
 
         // Note label
-        const label = new Text(this.scene, this.KEY_WIDTH / 2, this.KEY_HEIGHT - 30, note, {
-            fontFamily: 'Arial Black',
-            fontSize: '22px',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 3,
-        });
+        const label = this.scene.add.text(
+            x + this.KEY_WIDTH / 2,
+            this.y + this.KEY_HEIGHT - 30,
+            note,
+            {
+                fontFamily: 'Arial Black',
+                fontSize: '22px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 3,
+            }
+        );
         label.setOrigin(0.5);
+        label.setScrollFactor(0);
+        label.setDepth(202);
 
-        keyContainer.add([keyBg, sticker, label]);
+        this.keys.set(note, { bg: keyBg, sticker, label });
+        this.allElements.push(keyBg, sticker, label);
 
         // Input handlers
         keyBg.on('pointerdown', () => {
@@ -75,8 +97,6 @@ export class OnScreenKeyboard {
         keyBg.on('pointerout', () => {
             keyBg.setFillStyle(0xffffff);
         });
-
-        return keyContainer;
     }
 
     private darkenColor(color: number, amount: number): number {
@@ -92,6 +112,18 @@ export class OnScreenKeyboard {
         }
     }
 
+    // Visually highlight a key (called when any input method triggers a note)
+    highlightKey(note: NoteName): void {
+        const keyElements = this.keys.get(note);
+        if (!keyElements) return;
+
+        keyElements.bg.setFillStyle(0xaaffaa); // Light green flash
+
+        this.scene.time.delayedCall(150, () => {
+            keyElements.bg.setFillStyle(0xffffff);
+        });
+    }
+
     setCallback(callback: KeyPressCallback): void {
         this.onKeyPress = callback;
     }
@@ -102,12 +134,12 @@ export class OnScreenKeyboard {
 
     show(): void {
         this.isVisible = true;
-        this.container.setVisible(true);
+        this.allElements.forEach(el => el.setVisible(true));
     }
 
     hide(): void {
         this.isVisible = false;
-        this.container.setVisible(false);
+        this.allElements.forEach(el => el.setVisible(false));
     }
 
     toggle(): void {
@@ -119,6 +151,8 @@ export class OnScreenKeyboard {
     }
 
     destroy(): void {
-        this.container.destroy();
+        this.allElements.forEach(el => el.destroy());
+        this.allElements = [];
+        this.keys.clear();
     }
 }

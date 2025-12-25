@@ -1,20 +1,20 @@
 // Pitch Jump - Main Game Scene
-import { EventBus } from '../EventBus';
-import { Scene, GameObjects } from 'phaser';
-import { Player } from '../entities/Player';
-import { Enemy } from '../entities/Enemy';
-import { audioManager } from '../AudioManager';
-import { midiInput } from '../MidiInput';
-import { NoteName, NOTES } from '../NoteDefinitions';
-import { WorldConfig, getWorld, generateNoteSequence } from '../WorldConfig';
-import { OnScreenKeyboard } from '../ui/OnScreenKeyboard';
+import { EventBus } from "../EventBus";
+import { Scene, GameObjects } from "phaser";
+import { Player } from "../entities/Player";
+import { Enemy } from "../entities/Enemy";
+import { audioManager } from "../AudioManager";
+import { midiInput } from "../MidiInput";
+import { NoteName, NOTES } from "../NoteDefinitions";
+import { WorldConfig, getWorld, generateNoteSequence } from "../WorldConfig";
+import { OnScreenKeyboard } from "../ui/OnScreenKeyboard";
 
 enum GameState {
-    INIT = 'init',
-    WALKING = 'walking',
-    WAITING_FOR_INPUT = 'waiting',
-    JUMPING = 'jumping',
-    WORLD_COMPLETE = 'world_complete',
+    INIT = "init",
+    WALKING = "walking",
+    WAITING_FOR_INPUT = "waiting",
+    JUMPING = "jumping",
+    WORLD_COMPLETE = "world_complete",
 }
 
 export class PitchJump extends Scene {
@@ -33,7 +33,7 @@ export class PitchJump extends Scene {
     private onScreenKeyboard!: OnScreenKeyboard;
 
     private cameraOffset: number = 0;
-    private readonly GROUND_Y = 450;  // Higher to make room for on-screen keyboard
+    private readonly GROUND_Y = 450; // Higher to make room for on-screen keyboard
     private readonly PLAYER_START_X = 150;
     private readonly ENEMY_SPACING = 300;
     private readonly ENEMY_START_X = 500;
@@ -42,7 +42,7 @@ export class PitchJump extends Scene {
     private currentWorldNumber: number = 1;
 
     constructor() {
-        super('PitchJump');
+        super("PitchJump");
     }
 
     init(data: { worldNumber?: number } = {}) {
@@ -92,15 +92,15 @@ export class PitchJump extends Scene {
         this.gameState = GameState.WALKING;
 
         // Emit ready event
-        EventBus.emit('current-scene-ready', this);
+        EventBus.emit("current-scene-ready", this);
 
         // Resume audio context on first interaction
-        this.input.once('pointerdown', async () => {
+        this.input.once("pointerdown", async () => {
             await audioManager.resume();
         });
 
         // Also allow keyboard to resume audio and act as fallback input
-        this.input.keyboard?.on('keydown', async (event: KeyboardEvent) => {
+        this.input.keyboard?.on("keydown", async (event: KeyboardEvent) => {
             await audioManager.resume();
             this.handleKeyboardInput(event.key);
         });
@@ -108,38 +108,30 @@ export class PitchJump extends Scene {
 
     private createWorld(): void {
         // Calculate world width based on enemy count (add extra padding at the end)
-        const worldWidth = this.ENEMY_START_X + this.noteSequence.length * this.ENEMY_SPACING + 500;
+        const worldWidth =
+            this.ENEMY_START_X +
+            this.noteSequence.length * this.ENEMY_SPACING +
+            500;
 
         // Background image (tiled across the world width)
         const bgTileCount = Math.ceil(worldWidth / 1024);
         for (let i = 0; i < bgTileCount; i++) {
-            const bg = this.add.image(512 + i * 1024, 384, 'music-bg');
+            const bg = this.add.image(512 + i * 1024, 384, "music-bg");
             bg.setDisplaySize(1024, 768);
             bg.setDepth(-1);
         }
 
-        // Ground (grass layer) - sized to fit all enemies
-        this.ground = this.add.rectangle(
-            worldWidth / 2,
-            this.GROUND_Y + 25,
-            worldWidth,
-            50,
-            0x7cba5f // Grass green
-        );
-        this.ground.setStrokeStyle(2, 0x5a8f4a);
-
-        // Add some simple ground decoration (grass blades) across the entire world
-        const grassCount = Math.ceil(worldWidth / 100);
-        for (let i = 0; i < grassCount; i++) {
-            const x = i * 100 + Math.random() * 50;
-            const grassBlade = this.add.rectangle(
-                x,
-                this.GROUND_Y,
-                3,
-                10 + Math.random() * 8,
-                0x5a8f4a
+        // Tiled brick floor
+        const floorTileSize = 100; // Display size for each tile
+        const floorTileCount = Math.ceil(worldWidth / floorTileSize) + 1;
+        for (let i = 0; i < floorTileCount; i++) {
+            const floorTile = this.add.image(
+                i * floorTileSize + floorTileSize / 2,
+                this.GROUND_Y + floorTileSize / 2 + 6,
+                "brickfloor",
             );
-            grassBlade.setOrigin(0.5, 1);
+            floorTile.setDisplaySize(floorTileSize, floorTileSize);
+            floorTile.setDepth(0);
         }
     }
 
@@ -153,7 +145,7 @@ export class PitchJump extends Scene {
                 this,
                 x,
                 this.GROUND_Y - 30,
-                this.noteSequence[i]
+                this.noteSequence[i],
             );
             this.enemies.push(enemy);
         }
@@ -162,10 +154,10 @@ export class PitchJump extends Scene {
     private createUI(): void {
         // World title
         this.worldText = this.add.text(20, 20, this.worldConfig.name, {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff',
-            stroke: '#000000',
+            fontFamily: "Arial",
+            fontSize: "24px",
+            color: "#ffffff",
+            stroke: "#000000",
             strokeThickness: 4,
         });
         this.worldText.setScrollFactor(0);
@@ -173,29 +165,24 @@ export class PitchJump extends Scene {
 
         // Progress counter
         this.progressText = this.add.text(20, 55, this.getProgressText(), {
-            fontFamily: 'Arial',
-            fontSize: '18px',
-            color: '#ffffff',
-            stroke: '#000000',
+            fontFamily: "Arial",
+            fontSize: "18px",
+            color: "#ffffff",
+            stroke: "#000000",
             strokeThickness: 3,
         });
         this.progressText.setScrollFactor(0);
         this.progressText.setDepth(100);
 
         // Instruction text (shows when waiting for input)
-        this.instructionText = this.add.text(
-            512,
-            200,
-            '',
-            {
-                fontFamily: 'Arial',
-                fontSize: '28px',
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 5,
-                align: 'center',
-            }
-        );
+        this.instructionText = this.add.text(512, 200, "", {
+            fontFamily: "Arial",
+            fontSize: "28px",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 5,
+            align: "center",
+        });
         this.instructionText.setOrigin(0.5);
         this.instructionText.setScrollFactor(0);
         this.instructionText.setDepth(100);
@@ -217,7 +204,10 @@ export class PitchJump extends Scene {
 
             // Check if player reached next enemy
             const currentEnemy = this.enemies[this.currentEnemyIndex];
-            if (currentEnemy && this.player.getX() >= currentEnemy.getX() - 80) {
+            if (
+                currentEnemy &&
+                this.player.getX() >= currentEnemy.getX() - 80
+            ) {
                 this.arriveAtEnemy(currentEnemy);
             }
         }
@@ -251,7 +241,9 @@ export class PitchJump extends Scene {
 
         // Show instruction
         const noteData = NOTES[enemy.note];
-        this.instructionText.setText(`Listen... What note is this?\n(${noteData.colorName} = ${enemy.note})`);
+        this.instructionText.setText(
+            `Listen... What note is this?\n(${noteData.colorName} = ${enemy.note})`,
+        );
         this.instructionText.setVisible(true);
     }
 
@@ -260,6 +252,9 @@ export class PitchJump extends Scene {
 
         const currentEnemy = this.enemies[this.currentEnemyIndex];
         if (!currentEnemy) return;
+
+        // Show which note was pressed on the on-screen keyboard
+        this.onScreenKeyboard.highlightKey(note);
 
         if (note === currentEnemy.note) {
             // Correct!
@@ -273,13 +268,20 @@ export class PitchJump extends Scene {
     private handleKeyboardInput(key: string): void {
         // Fallback keyboard input (A-G keys)
         const keyMap: Record<string, NoteName> = {
-            'a': 'A', 'A': 'A',
-            'b': 'B', 'B': 'B',
-            'c': 'C', 'C': 'C',
-            'd': 'D', 'D': 'D',
-            'e': 'E', 'E': 'E',
-            'f': 'F', 'F': 'F',
-            'g': 'G', 'G': 'G',
+            a: "A",
+            A: "A",
+            b: "B",
+            B: "B",
+            c: "C",
+            C: "C",
+            d: "D",
+            D: "D",
+            e: "E",
+            E: "E",
+            f: "F",
+            F: "F",
+            g: "G",
+            G: "G",
         };
 
         const note = keyMap[key];
@@ -344,13 +346,13 @@ export class PitchJump extends Scene {
             300,
             `${this.worldConfig.name}\nComplete!`,
             {
-                fontFamily: 'Arial Black',
-                fontSize: '48px',
-                color: '#ffffff',
-                stroke: '#000000',
+                fontFamily: "Arial Black",
+                fontSize: "48px",
+                color: "#ffffff",
+                stroke: "#000000",
                 strokeThickness: 6,
-                align: 'center',
-            }
+                align: "center",
+            },
         );
         completeText.setOrigin(0.5);
         completeText.setScrollFactor(0);
@@ -360,25 +362,25 @@ export class PitchJump extends Scene {
         const continueText = this.add.text(
             512,
             450,
-            'Press any key to continue...',
+            "Press any key to continue...",
             {
-                fontFamily: 'Arial',
-                fontSize: '24px',
-                color: '#ffffff',
-                stroke: '#000000',
+                fontFamily: "Arial",
+                fontSize: "24px",
+                color: "#ffffff",
+                stroke: "#000000",
                 strokeThickness: 4,
-                align: 'center',
-            }
+                align: "center",
+            },
         );
         continueText.setOrigin(0.5);
         continueText.setScrollFactor(0);
         continueText.setDepth(100);
 
         // Wait for input to go to next world or back to menu
-        this.input.keyboard?.once('keydown', () => {
+        this.input.keyboard?.once("keydown", () => {
             this.goToNextWorld();
         });
-        this.input.once('pointerdown', () => {
+        this.input.once("pointerdown", () => {
             this.goToNextWorld();
         });
     }
@@ -392,13 +394,13 @@ export class PitchJump extends Scene {
             this.scene.restart({ worldNumber: nextWorldNumber });
         } else {
             // All worlds complete - back to menu
-            this.scene.start('MainMenu');
+            this.scene.start("MainMenu");
         }
     }
 
     // Public method to change scene (called from Vue)
     changeScene(): void {
-        this.scene.start('MainMenu');
+        this.scene.start("MainMenu");
     }
 
     // Cleanup

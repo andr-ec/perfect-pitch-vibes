@@ -1,9 +1,6 @@
 import { GameObjects, Scene } from 'phaser';
 import { EventBus } from '../EventBus';
-import { NOTES } from '../NoteDefinitions';
 import { WORLDS } from '../WorldConfig';
-
-const { Ellipse, Text } = GameObjects;
 
 export class MainMenu extends Scene {
     background: GameObjects.Image;
@@ -76,27 +73,16 @@ export class MainMenu extends Scene {
 
         notes.forEach((note, index) => {
             const x = startX + index * spacing;
-            const y = 400;
-            const noteData = NOTES[note];
+            const y = 380;
 
             const container = this.add.container(x, y);
 
-            // Blob body
-            const blob = new Ellipse(this, 0, 0, 50, 45, noteData.color);
-            blob.setStrokeStyle(3, this.darkenColor(noteData.color, 0.3));
-
-            // Highlight
-            const highlight = new Ellipse(this, -8, -8, 15, 12, 0xffffff);
-            highlight.setAlpha(0.4);
-
-            // Eyes
-            const eye1 = new Ellipse(this, -8, -3, 8, 10, 0xffffff);
-            const eye2 = new Ellipse(this, 8, -3, 8, 10, 0xffffff);
-            const pupil1 = new Ellipse(this, -9, -2, 4, 5, 0x000000);
-            const pupil2 = new Ellipse(this, 7, -2, 4, 5, 0x000000);
+            // Enemy sprite
+            const sprite = this.add.image(0, 0, `enemy-${note}`);
+            sprite.setScale(0.25);
 
             // Note label
-            const label = new Text(this, 0, 35, note, {
+            const label = this.add.text(0, 45, note, {
                 fontFamily: 'Arial',
                 fontSize: '16px',
                 color: '#ffffff',
@@ -104,7 +90,7 @@ export class MainMenu extends Scene {
                 strokeThickness: 3,
             }).setOrigin(0.5);
 
-            container.add([blob, highlight, eye1, eye2, pupil1, pupil2, label]);
+            container.add([sprite, label]);
 
             // Bounce animation with offset
             this.tweens.add({
@@ -246,13 +232,6 @@ export class MainMenu extends Scene {
             yoyo: true,
             repeat: -1
         });
-    }
-
-    private darkenColor(color: number, amount: number): number {
-        const r = Math.floor(((color >> 16) & 255) * (1 - amount));
-        const g = Math.floor(((color >> 8) & 255) * (1 - amount));
-        const b = Math.floor((color & 255) * (1 - amount));
-        return (r << 16) | (g << 8) | b;
     }
 
     changeScene() {
