@@ -107,11 +107,16 @@ export class PitchJump extends Scene {
     }
 
     private createWorld(): void {
-        // Sky background
-        this.cameras.main.setBackgroundColor(0x87ceeb);
-
         // Calculate world width based on enemy count (add extra padding at the end)
         const worldWidth = this.ENEMY_START_X + this.noteSequence.length * this.ENEMY_SPACING + 500;
+
+        // Background image (tiled across the world width)
+        const bgTileCount = Math.ceil(worldWidth / 1024);
+        for (let i = 0; i < bgTileCount; i++) {
+            const bg = this.add.image(512 + i * 1024, 384, 'music-bg');
+            bg.setDisplaySize(1024, 768);
+            bg.setDepth(-1);
+        }
 
         // Ground (grass layer) - sized to fit all enemies
         this.ground = this.add.rectangle(

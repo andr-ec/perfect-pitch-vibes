@@ -20,8 +20,9 @@ export class MainMenu extends Scene {
     }
 
     create() {
-        // Sky background
-        this.cameras.main.setBackgroundColor(0x87ceeb);
+        // Background image
+        this.background = this.add.image(512, 384, 'music-bg');
+        this.background.setDisplaySize(1024, 768);
 
         // Title
         this.title = this.add.text(512, 150, 'Pitch Jump', {

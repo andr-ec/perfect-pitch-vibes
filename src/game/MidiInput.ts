@@ -45,10 +45,6 @@ export class MidiInput {
             this.connectedDevices.push(input.name || 'Unknown Device');
             input.onmidimessage = (event) => this.handleMidiMessage(event);
         });
-
-        if (this.connectedDevices.length > 0) {
-            console.log('MIDI devices connected:', this.connectedDevices);
-        }
     }
 
     private handleMidiMessage(event: MIDIMessageEvent): void {

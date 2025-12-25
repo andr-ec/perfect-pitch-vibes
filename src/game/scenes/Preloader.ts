@@ -34,6 +34,20 @@ export class Preloader extends Scene
 
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
+        this.load.image('music-bg', 'music-bg.jpg');
+        this.load.spritesheet('player', 'walking-animation.png', {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        // Load enemy sprites
+        this.load.image('enemy-C', 'enemies/enemy-C.png');
+        this.load.image('enemy-D', 'enemies/enemy-D.png');
+        this.load.image('enemy-E', 'enemies/enemy-E.png');
+        this.load.image('enemy-F', 'enemies/enemy-F.png');
+        this.load.image('enemy-G', 'enemies/enemy-G.png');
+        this.load.image('enemy-A', 'enemies/enemy-A.png');
+        this.load.image('enemy-B', 'enemies/enemy-B.png');
     }
 
     create ()

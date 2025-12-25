@@ -1,4 +1,4 @@
-// Player entity - a simple character that walks and jumps
+// Player entity - animated sprite character that walks and jumps
 import { Scene, GameObjects } from 'phaser';
 
 export enum PlayerState {
@@ -9,7 +9,7 @@ export enum PlayerState {
 
 export class Player {
     private scene: Scene;
-    private sprite: GameObjects.Graphics;
+    private sprite: GameObjects.Sprite;
 
     public x: number;
     public y: number;
@@ -25,53 +25,89 @@ export class Player {
         this.y = y;
         this.groundY = y;
 
-        // Create graphics object for the player
-        this.sprite = scene.add.graphics();
+        // Create animations if they don't exist
+        this.createAnimations();
+
+        // Create sprite for the player (row 2 = right-facing, frames 4-7)
+        this.sprite = scene.add.sprite(x, y, 'player', 4);
         this.sprite.setDepth(10);
-        this.drawPlayer();
+        this.sprite.setScale(0.5); // Scale down if needed
+
+        // Start walking animation
+        this.sprite.play('player-walk-right');
     }
 
-    private drawPlayer(): void {
-        this.sprite.clear();
-        this.sprite.setPosition(this.x, this.y);
+    private createAnimations(): void {
+        // Only create animations once
+        if (this.scene.anims.exists('player-walk-right')) return;
 
-        // Body - blue blob
-        this.sprite.fillStyle(0x4a90d9);
-        this.sprite.fillEllipse(0, 0, 50, 60);
-        this.sprite.lineStyle(3, 0x2d5a87);
-        this.sprite.strokeEllipse(0, 0, 50, 60);
+        // Row 1 (frames 0-3): Back/up facing
+        this.scene.anims.create({
+            key: 'player-walk-up',
+            frames: this.scene.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+            frameRate: 8,
+            repeat: -1,
+        });
 
-        // Eyes (white)
-        this.sprite.fillStyle(0xffffff);
-        this.sprite.fillEllipse(-10, -10, 10, 12);
-        this.sprite.fillEllipse(10, -10, 10, 12);
+        // Row 2 (frames 4-7): Right facing - main walking direction
+        this.scene.anims.create({
+            key: 'player-walk-right',
+            frames: this.scene.anims.generateFrameNumbers('player', { start: 4, end: 7 }),
+            frameRate: 8,
+            repeat: -1,
+        });
 
-        // Pupils (black)
-        this.sprite.fillStyle(0x000000);
-        this.sprite.fillEllipse(-8, -10, 5, 6);
-        this.sprite.fillEllipse(12, -10, 5, 6);
+        // Row 3 (frames 8-11): Front/down facing
+        this.scene.anims.create({
+            key: 'player-walk-down',
+            frames: this.scene.anims.generateFrameNumbers('player', { start: 8, end: 11 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+
+        // Row 4 (frames 12-15): Left facing
+        this.scene.anims.create({
+            key: 'player-walk-left',
+            frames: this.scene.anims.generateFrameNumbers('player', { start: 12, end: 15 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+
+        // Idle animation (single frame from right-facing)
+        this.scene.anims.create({
+            key: 'player-idle',
+            frames: [{ key: 'player', frame: 4 }],
+            frameRate: 1,
+            repeat: 0,
+        });
     }
 
     update(delta: number): void {
         if (this.state === PlayerState.WALKING) {
             // Move right
             this.x += this.walkSpeed * (delta / 1000);
+            this.sprite.setPosition(this.x, this.groundY);
 
-            // Simple bobbing animation while walking
-            const bob = Math.sin(this.scene.time.now / 100) * 3;
-            this.sprite.setPosition(this.x, this.groundY + bob);
+            // Ensure walking animation is playing
+            if (this.sprite.anims.currentAnim?.key !== 'player-walk-right') {
+                this.sprite.play('player-walk-right');
+            }
         }
     }
 
     stopWalking(): void {
         this.state = PlayerState.WAITING;
         this.sprite.setPosition(this.x, this.groundY);
+        this.sprite.play('player-idle');
     }
 
     jump(onComplete: () => void): void {
         if (this.state === PlayerState.JUMPING) return;
 
         this.state = PlayerState.JUMPING;
+
+        // Keep walking animation during jump
+        this.sprite.play('player-walk-right');
 
         // Jump arc animation
         this.scene.tweens.add({

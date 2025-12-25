@@ -1,7 +1,10 @@
 // Audio Manager for Pitch Jump
 // Synthesizes piano-like tones using Web Audio API
+// Can also delegate to MIDI output based on settings
 
 import { NOTES, NoteName } from './NoteDefinitions';
+import { gameSettings } from './GameSettings';
+import { midiOutput } from './MidiOutput';
 
 export class AudioManager {
     private audioContext: AudioContext | null = null;
@@ -12,6 +15,16 @@ export class AudioManager {
 
         // Create audio context (requires user interaction first)
         this.audioContext = new AudioContext();
+
+        // Initialize MIDI output as well
+        await midiOutput.init();
+
+        // Restore selected MIDI output from settings
+        const savedOutput = gameSettings.getSelectedMidiOutputName();
+        if (savedOutput) {
+            midiOutput.selectOutputByName(savedOutput);
+        }
+
         this.isInitialized = true;
     }
 
@@ -24,6 +37,12 @@ export class AudioManager {
 
     // Play a piano-like note
     playNote(noteName: NoteName, duration: number = 1.5): void {
+        // Check if we should use MIDI output instead
+        if (gameSettings.useMidiOutput() && midiOutput.hasOutputs()) {
+            midiOutput.playNote(noteName, duration * 1000); // Convert to ms
+            return;
+        }
+
         if (!this.audioContext) {
             console.warn('AudioManager not initialized');
             return;
@@ -94,6 +113,12 @@ export class AudioManager {
 
     // Play the note one octave higher (for jump sound)
     playJumpNote(noteName: NoteName): void {
+        // Check if we should use MIDI output instead
+        if (gameSettings.useMidiOutput() && midiOutput.hasOutputs()) {
+            midiOutput.playJumpNote(noteName);
+            return;
+        }
+
         if (!this.audioContext) return;
 
         const note = NOTES[noteName];
