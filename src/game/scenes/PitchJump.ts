@@ -26,7 +26,6 @@ export class PitchJump extends Scene {
     private worldConfig!: WorldConfig;
     private noteSequence: NoteName[] = [];
 
-    private ground!: GameObjects.Rectangle;
     private worldText!: GameObjects.Text;
     private progressText!: GameObjects.Text;
     private instructionText!: GameObjects.Text;
@@ -83,7 +82,7 @@ export class PitchJump extends Scene {
         this.createUI();
 
         // Create on-screen keyboard (positioned below the ground)
-        this.onScreenKeyboard = new OnScreenKeyboard(this, 520);
+        this.onScreenKeyboard = new OnScreenKeyboard(this, 580);
         this.onScreenKeyboard.setCallback((note) => {
             this.handleNoteInput(note);
         });

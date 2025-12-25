@@ -30,7 +30,7 @@ export class Enemy {
         this.wobblePhase = Math.random() * Math.PI * 2;
     }
 
-    update(time: number): void {
+    update(_time: number): void {
         if (!this.isActive) return;
 
         // Gentle wobble animation

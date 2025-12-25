@@ -18,10 +18,11 @@ export class OnScreenKeyboard {
     private isVisible: boolean = true;
     private y: number;
 
-    private readonly KEY_WIDTH = 80;
-    private readonly KEY_HEIGHT = 120;
-    private readonly KEY_SPACING = 8;
-    private readonly START_X = 512 - (7 * 88) / 2; // Center the keyboard
+    private readonly WHITE_KEY_WIDTH = 80;
+    private readonly WHITE_KEY_HEIGHT = 140;
+    private readonly BLACK_KEY_WIDTH = 50;
+    private readonly BLACK_KEY_HEIGHT = 85;
+    private readonly KEY_SPACING = 4;
 
     constructor(scene: Scene, y: number = 700) {
         this.scene = scene;
@@ -30,21 +31,36 @@ export class OnScreenKeyboard {
     }
 
     private createKeys(): void {
+        // Calculate total width and center position
+        const totalWidth = NOTE_NAMES.length * (this.WHITE_KEY_WIDTH + this.KEY_SPACING) - this.KEY_SPACING;
+        const startX = 512 - totalWidth / 2;
+
+        // Create white keys first (so black keys appear on top)
         NOTE_NAMES.forEach((note, index) => {
-            const x = this.START_X + index * (this.KEY_WIDTH + this.KEY_SPACING);
-            this.createKey(note, x);
+            const x = startX + index * (this.WHITE_KEY_WIDTH + this.KEY_SPACING);
+            this.createWhiteKey(note, x);
+        });
+
+        // Create black keys (sharps) between appropriate white keys
+        // Piano pattern: C C# D D# E F F# G G# A A# B
+        // Sharps after: C, D, F, G, A (not after E or B)
+        const sharpPositions = [0, 1, 3, 4, 5]; // C#, D#, F#, G#, A# (indices of white keys that have a sharp after them)
+
+        sharpPositions.forEach((whiteKeyIndex) => {
+            const x = startX + whiteKeyIndex * (this.WHITE_KEY_WIDTH + this.KEY_SPACING) + this.WHITE_KEY_WIDTH - this.BLACK_KEY_WIDTH / 2 + this.KEY_SPACING / 2;
+            this.createBlackKey(x);
         });
     }
 
-    private createKey(note: NoteName, x: number): void {
+    private createWhiteKey(note: NoteName, x: number): void {
         const noteData = NOTES[note];
 
-        // Key background (white key) - add directly to scene, not container
+        // Key background (white key)
         const keyBg = this.scene.add.rectangle(
-            x + this.KEY_WIDTH / 2,
-            this.y + this.KEY_HEIGHT / 2,
-            this.KEY_WIDTH,
-            this.KEY_HEIGHT,
+            x + this.WHITE_KEY_WIDTH / 2,
+            this.y + this.WHITE_KEY_HEIGHT / 2,
+            this.WHITE_KEY_WIDTH,
+            this.WHITE_KEY_HEIGHT,
             0xffffff
         );
         keyBg.setStrokeStyle(2, 0x333333);
@@ -54,10 +70,10 @@ export class OnScreenKeyboard {
 
         // Color sticker on the key
         const sticker = this.scene.add.ellipse(
-            x + this.KEY_WIDTH / 2,
-            this.y + this.KEY_HEIGHT - 30,
-            50,
-            50,
+            x + this.WHITE_KEY_WIDTH / 2,
+            this.y + this.WHITE_KEY_HEIGHT - 35,
+            45,
+            45,
             noteData.color
         );
         sticker.setStrokeStyle(3, this.darkenColor(noteData.color, 0.3));
@@ -66,12 +82,12 @@ export class OnScreenKeyboard {
 
         // Note label
         const label = this.scene.add.text(
-            x + this.KEY_WIDTH / 2,
-            this.y + this.KEY_HEIGHT - 30,
+            x + this.WHITE_KEY_WIDTH / 2,
+            this.y + this.WHITE_KEY_HEIGHT - 35,
             note,
             {
                 fontFamily: 'Arial Black',
-                fontSize: '22px',
+                fontSize: '20px',
                 color: '#ffffff',
                 stroke: '#000000',
                 strokeThickness: 3,
@@ -97,6 +113,22 @@ export class OnScreenKeyboard {
         keyBg.on('pointerout', () => {
             keyBg.setFillStyle(0xffffff);
         });
+    }
+
+    private createBlackKey(x: number): void {
+        // Black key (sharp) - purely decorative, not interactive
+        const blackKey = this.scene.add.rectangle(
+            x + this.BLACK_KEY_WIDTH / 2,
+            this.y + this.BLACK_KEY_HEIGHT / 2,
+            this.BLACK_KEY_WIDTH,
+            this.BLACK_KEY_HEIGHT,
+            0x222222
+        );
+        blackKey.setStrokeStyle(2, 0x000000);
+        blackKey.setScrollFactor(0);
+        blackKey.setDepth(210); // Above white keys
+
+        this.allElements.push(blackKey);
     }
 
     private darkenColor(color: number, amount: number): number {
