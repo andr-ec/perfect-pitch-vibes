@@ -5,7 +5,7 @@ import { Player } from "../entities/Player";
 import { Enemy } from "../entities/Enemy";
 import { audioManager } from "../AudioManager";
 import { midiInput } from "../MidiInput";
-import { NoteName, NOTES } from "../NoteDefinitions";
+import { NoteName, AllNoteName, NOTES, NOTE_NAMES } from "../NoteDefinitions";
 import { WorldConfig, getWorld, generateNoteSequence } from "../WorldConfig";
 import { OnScreenKeyboard } from "../ui/OnScreenKeyboard";
 
@@ -246,20 +246,25 @@ export class PitchJump extends Scene {
         this.instructionText.setVisible(true);
     }
 
-    private handleNoteInput(note: NoteName): void {
+    private handleNoteInput(note: AllNoteName): void {
+        // Play the pressed note sound
+        audioManager.playNote(note, 0.5);
+
         if (this.gameState !== GameState.WAITING_FOR_INPUT) return;
 
         const currentEnemy = this.enemies[this.currentEnemyIndex];
         if (!currentEnemy) return;
 
-        // Show which note was pressed on the on-screen keyboard
-        this.onScreenKeyboard.highlightKey(note);
+        // Show which note was pressed on the on-screen keyboard (only for natural notes)
+        if ((NOTE_NAMES as readonly string[]).includes(note)) {
+            this.onScreenKeyboard.highlightKey(note as NoteName);
+        }
 
         if (note === currentEnemy.note) {
             // Correct!
             this.onCorrectNote(currentEnemy);
         } else {
-            // Wrong - replay the note
+            // Wrong - replay the correct note
             this.onWrongNote(currentEnemy);
         }
     }

@@ -2,7 +2,7 @@
 // Synthesizes piano-like tones using Web Audio API
 // Can also delegate to MIDI output based on settings
 
-import { NOTES, NoteName } from './NoteDefinitions';
+import { NOTES, NoteName, AllNoteName } from './NoteDefinitions';
 import { gameSettings } from './GameSettings';
 import { midiOutput } from './MidiOutput';
 
@@ -36,7 +36,7 @@ export class AudioManager {
     }
 
     // Play a piano-like note
-    playNote(noteName: NoteName, duration: number = 1.5): void {
+    playNote(noteName: NoteName | AllNoteName, duration: number = 1.5): void {
         // Check if we should use MIDI output instead
         if (gameSettings.useMidiOutput() && midiOutput.hasOutputs()) {
             midiOutput.playNote(noteName, duration * 1000); // Convert to ms

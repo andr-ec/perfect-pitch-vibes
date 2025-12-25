@@ -1,7 +1,7 @@
 // MIDI Output Handler for Pitch Jump
 // Sends notes to external MIDI devices (e.g., digital piano, synthesizer)
 
-import { NOTES, NoteName } from './NoteDefinitions';
+import { NOTES, NoteName, AllNoteName } from './NoteDefinitions';
 
 export class MidiOutput {
     private midiAccess: MIDIAccess | null = null;
@@ -50,7 +50,7 @@ export class MidiOutput {
     }
 
     // Play a note on the MIDI output device
-    playNote(noteName: NoteName, duration: number = 1500, velocity: number = 100): void {
+    playNote(noteName: NoteName | AllNoteName, duration: number = 1500, velocity: number = 100): void {
         if (!this.selectedOutput) {
             console.warn('No MIDI output device selected');
             return;

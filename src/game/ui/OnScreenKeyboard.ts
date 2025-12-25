@@ -1,8 +1,8 @@
 // On-screen piano keyboard for fallback input
 import { Scene, GameObjects } from 'phaser';
-import { NOTES, NoteName, NOTE_NAMES } from '../NoteDefinitions';
+import { NOTES, NoteName, NOTE_NAMES, AllNoteName } from '../NoteDefinitions';
 
-export type KeyPressCallback = (note: NoteName) => void;
+export type KeyPressCallback = (note: AllNoteName) => void;
 
 interface KeyElements {
     bg: GameObjects.Rectangle;
@@ -44,11 +44,17 @@ export class OnScreenKeyboard {
         // Create black keys (sharps) between appropriate white keys
         // Piano pattern: C C# D D# E F F# G G# A A# B
         // Sharps after: C, D, F, G, A (not after E or B)
-        const sharpPositions = [0, 1, 3, 4, 5]; // C#, D#, F#, G#, A# (indices of white keys that have a sharp after them)
+        const sharps: { whiteKeyIndex: number; note: AllNoteName }[] = [
+            { whiteKeyIndex: 0, note: 'C#' },
+            { whiteKeyIndex: 1, note: 'D#' },
+            { whiteKeyIndex: 3, note: 'F#' },
+            { whiteKeyIndex: 4, note: 'G#' },
+            { whiteKeyIndex: 5, note: 'A#' },
+        ];
 
-        sharpPositions.forEach((whiteKeyIndex) => {
+        sharps.forEach(({ whiteKeyIndex, note }) => {
             const x = startX + whiteKeyIndex * (this.WHITE_KEY_WIDTH + this.KEY_SPACING) + this.WHITE_KEY_WIDTH - this.BLACK_KEY_WIDTH / 2 + this.KEY_SPACING / 2;
-            this.createBlackKey(x);
+            this.createBlackKey(x, note);
         });
     }
 
@@ -115,8 +121,8 @@ export class OnScreenKeyboard {
         });
     }
 
-    private createBlackKey(x: number): void {
-        // Black key (sharp) - purely decorative, not interactive
+    private createBlackKey(x: number, note: AllNoteName): void {
+        // Black key (sharp) - interactive
         const blackKey = this.scene.add.rectangle(
             x + this.BLACK_KEY_WIDTH / 2,
             this.y + this.BLACK_KEY_HEIGHT / 2,
@@ -127,6 +133,21 @@ export class OnScreenKeyboard {
         blackKey.setStrokeStyle(2, 0x000000);
         blackKey.setScrollFactor(0);
         blackKey.setDepth(210); // Above white keys
+        blackKey.setInteractive({ useHandCursor: true });
+
+        // Input handlers
+        blackKey.on('pointerdown', () => {
+            this.pressKey(note);
+            blackKey.setFillStyle(0x444444);
+        });
+
+        blackKey.on('pointerup', () => {
+            blackKey.setFillStyle(0x222222);
+        });
+
+        blackKey.on('pointerout', () => {
+            blackKey.setFillStyle(0x222222);
+        });
 
         this.allElements.push(blackKey);
     }
@@ -138,7 +159,7 @@ export class OnScreenKeyboard {
         return (r << 16) | (g << 8) | b;
     }
 
-    private pressKey(note: NoteName): void {
+    private pressKey(note: AllNoteName): void {
         if (this.onKeyPress) {
             this.onKeyPress(note);
         }
