@@ -1,19 +1,19 @@
 // On-screen piano keyboard for fallback input
 import { Scene, GameObjects } from 'phaser';
-import { NOTES, NoteName, NOTE_NAMES, AllNoteName } from '../NoteDefinitions';
+import { NoteName, NOTE_NAMES, AllNoteName } from '../NoteDefinitions';
 
 export type KeyPressCallback = (note: AllNoteName) => void;
 
 interface KeyElements {
     bg: GameObjects.Rectangle;
-    sticker: GameObjects.Ellipse;
+    sticker: GameObjects.Image;
     label: GameObjects.Text;
 }
 
 export class OnScreenKeyboard {
     private scene: Scene;
     private keys: Map<NoteName, KeyElements> = new Map();
-    private allElements: (GameObjects.Rectangle | GameObjects.Ellipse | GameObjects.Text)[] = [];
+    private allElements: (GameObjects.Rectangle | GameObjects.Image | GameObjects.Text)[] = [];
     private onKeyPress: KeyPressCallback | null = null;
     private isVisible: boolean = true;
     private y: number;
@@ -59,8 +59,6 @@ export class OnScreenKeyboard {
     }
 
     private createWhiteKey(note: NoteName, x: number): void {
-        const noteData = NOTES[note];
-
         // Key background (white key)
         const keyBg = this.scene.add.rectangle(
             x + this.WHITE_KEY_WIDTH / 2,
@@ -74,15 +72,13 @@ export class OnScreenKeyboard {
         keyBg.setDepth(200);
         keyBg.setInteractive({ useHandCursor: true });
 
-        // Color sticker on the key
-        const sticker = this.scene.add.ellipse(
+        // Enemy sprite sticker on the key
+        const sticker = this.scene.add.image(
             x + this.WHITE_KEY_WIDTH / 2,
             this.y + this.WHITE_KEY_HEIGHT - 35,
-            45,
-            45,
-            noteData.color
+            `enemy-${note}`
         );
-        sticker.setStrokeStyle(3, this.darkenColor(noteData.color, 0.3));
+        sticker.setScale(0.2);
         sticker.setScrollFactor(0);
         sticker.setDepth(201);
 
@@ -150,13 +146,6 @@ export class OnScreenKeyboard {
         });
 
         this.allElements.push(blackKey);
-    }
-
-    private darkenColor(color: number, amount: number): number {
-        const r = Math.floor(((color >> 16) & 255) * (1 - amount));
-        const g = Math.floor(((color >> 8) & 255) * (1 - amount));
-        const b = Math.floor((color & 255) * (1 - amount));
-        return (r << 16) | (g << 8) | b;
     }
 
     private pressKey(note: AllNoteName): void {

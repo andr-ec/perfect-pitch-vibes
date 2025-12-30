@@ -10,21 +10,28 @@ export class Enemy {
     public y: number;
     public note: NoteName;
     public isActive: boolean = true;
+    public isWildcard: boolean = false;
 
     private wobblePhase: number = 0;
     private baseY: number;
+    private baseScale: number;
 
-    constructor(scene: Scene, x: number, y: number, note: NoteName) {
+    constructor(scene: Scene, x: number, y: number, note: NoteName, isWildcard: boolean = false) {
         this.scene = scene;
         this.x = x;
         this.y = y;
         this.baseY = y;
         this.note = note;
+        this.isWildcard = isWildcard;
 
-        // Create sprite using the enemy image for this note
-        this.sprite = scene.add.image(x, y, `enemy-${note}`);
+        // Create sprite - use white for wildcards, otherwise note color
+        const textureKey = isWildcard ? 'enemy-white' : `enemy-${note}`;
+        this.sprite = scene.add.image(x, y, textureKey);
         this.sprite.setDepth(5);
-        this.sprite.setScale(0.35); // Scale down to fit the game
+
+        // Wildcards are larger
+        this.baseScale = isWildcard ? 0.5 : 0.35;
+        this.sprite.setScale(this.baseScale);
 
         // Start wobble animation with random phase
         this.wobblePhase = Math.random() * Math.PI * 2;
@@ -35,8 +42,8 @@ export class Enemy {
 
         // Gentle wobble animation
         this.wobblePhase += 0.05;
-        const scaleX = 0.35 * (1 + Math.sin(this.wobblePhase) * 0.05);
-        const scaleY = 0.35 * (1 - Math.sin(this.wobblePhase) * 0.05);
+        const scaleX = this.baseScale * (1 + Math.sin(this.wobblePhase) * 0.05);
+        const scaleY = this.baseScale * (1 - Math.sin(this.wobblePhase) * 0.05);
         this.sprite.setScale(scaleX, scaleY);
 
         // Slight hover effect

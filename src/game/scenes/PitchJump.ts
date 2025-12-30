@@ -6,7 +6,7 @@ import { Enemy } from "../entities/Enemy";
 import { audioManager } from "../AudioManager";
 import { midiInput } from "../MidiInput";
 import { NoteName, AllNoteName, NOTES, NOTE_NAMES } from "../NoteDefinitions";
-import { WorldConfig, getWorld, generateNoteSequence } from "../WorldConfig";
+import { WorldConfig, getWorld, generateNoteSequence, NoteEntry } from "../WorldConfig";
 import { OnScreenKeyboard } from "../ui/OnScreenKeyboard";
 
 enum GameState {
@@ -24,7 +24,7 @@ export class PitchJump extends Scene {
     private gameState: GameState = GameState.INIT;
 
     private worldConfig!: WorldConfig;
-    private noteSequence: NoteName[] = [];
+    private noteSequence: NoteEntry[] = [];
 
     private worldText!: GameObjects.Text;
     private progressText!: GameObjects.Text;
@@ -140,11 +140,13 @@ export class PitchJump extends Scene {
 
         for (let i = 0; i < this.noteSequence.length; i++) {
             const x = this.ENEMY_START_X + i * this.ENEMY_SPACING;
+            const entry = this.noteSequence[i];
             const enemy = new Enemy(
                 this,
                 x,
                 this.GROUND_Y - 30,
-                this.noteSequence[i],
+                entry.note,
+                entry.isWildcard,
             );
             this.enemies.push(enemy);
         }
@@ -238,11 +240,15 @@ export class PitchJump extends Scene {
         // Play the note
         audioManager.playNote(enemy.note);
 
-        // Show instruction
-        const noteData = NOTES[enemy.note];
-        this.instructionText.setText(
-            `Listen... What note is this?\n(${noteData.colorName} = ${enemy.note})`,
-        );
+        // Show instruction - wildcards don't show the color hint
+        if (enemy.isWildcard) {
+            this.instructionText.setText(`Listen... What note is this?`);
+        } else {
+            const noteData = NOTES[enemy.note];
+            this.instructionText.setText(
+                `Listen... What note is this?\n(${noteData.colorName} = ${enemy.note})`,
+            );
+        }
         this.instructionText.setVisible(true);
     }
 
@@ -262,7 +268,7 @@ export class PitchJump extends Scene {
 
         if (note === currentEnemy.note) {
             // Correct!
-            this.onCorrectNote(currentEnemy);
+            this.onCorrectNote(currentEnemy, note);
         } else {
             // Wrong - replay the correct note
             this.onWrongNote(currentEnemy);
@@ -294,14 +300,17 @@ export class PitchJump extends Scene {
         }
     }
 
-    private onCorrectNote(enemy: Enemy): void {
+    private onCorrectNote(enemy: Enemy, playedNote: AllNoteName): void {
         this.gameState = GameState.JUMPING;
         this.instructionText.setVisible(false);
 
         // Play the note the player pressed, then the octave-higher jump sound
-        audioManager.playNote(enemy.note, 0.5);
+        audioManager.playNote(playedNote, 0.5);
         this.time.delayedCall(150, () => {
-            audioManager.playJumpNote(enemy.note);
+            // Only play jump note for natural notes
+            if ((NOTE_NAMES as readonly string[]).includes(playedNote)) {
+                audioManager.playJumpNote(playedNote as NoteName);
+            }
         });
 
         // Jump over enemy

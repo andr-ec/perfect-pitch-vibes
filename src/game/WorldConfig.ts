@@ -9,6 +9,7 @@ export interface WorldConfig {
     description: string;
     availableNotes: NoteName[];
     enemyCount: number;
+    wildcardCount: number; // Number of wildcard enemies at the end
 }
 
 export const WORLDS: WorldConfig[] = [
@@ -18,6 +19,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'Learn to hear and find the note C',
         availableNotes: ['C'],
         enemyCount: 10,
+        wildcardCount: 1,
     },
     {
         worldNumber: 2,
@@ -25,6 +27,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'Two notes - can you tell them apart?',
         availableNotes: ['C', 'G'],
         enemyCount: 20,
+        wildcardCount: 2,
     },
     {
         worldNumber: 3,
@@ -32,6 +35,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'The major triad',
         availableNotes: ['C', 'E', 'G'],
         enemyCount: 25,
+        wildcardCount: 3,
     },
     {
         worldNumber: 4,
@@ -39,6 +43,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'C, D, E, F, G - the five-finger position',
         availableNotes: ['C', 'D', 'E', 'F', 'G'],
         enemyCount: 25,
+        wildcardCount: 4,
     },
     {
         worldNumber: 5,
@@ -46,6 +51,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'All seven notes - C to B',
         availableNotes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
         enemyCount: 30,
+        wildcardCount: 5,
     },
     {
         worldNumber: 6,
@@ -53,6 +59,7 @@ export const WORLDS: WorldConfig[] = [
         description: 'Mixed review of all notes',
         availableNotes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
         enemyCount: 40,
+        wildcardCount: 6,
     },
 ];
 
@@ -64,20 +71,32 @@ export function getNextWorld(currentWorld: number): WorldConfig | undefined {
     return getWorld(currentWorld + 1);
 }
 
-// Generate a sequence of notes for a world
-export function generateNoteSequence(world: WorldConfig): NoteName[] {
-    const sequence: NoteName[] = [];
-    const { availableNotes, enemyCount } = world;
+export interface NoteEntry {
+    note: NoteName;
+    isWildcard: boolean;
+}
 
-    for (let i = 0; i < enemyCount; i++) {
+// Generate a sequence of notes for a world (wildcards are part of the total enemyCount)
+export function generateNoteSequence(world: WorldConfig): NoteEntry[] {
+    const sequence: NoteEntry[] = [];
+    const { availableNotes, enemyCount, wildcardCount } = world;
+    const regularCount = enemyCount - wildcardCount;
+
+    for (let i = 0; i < regularCount; i++) {
         // For world 1, all notes are the same
         if (availableNotes.length === 1) {
-            sequence.push(availableNotes[0]);
+            sequence.push({ note: availableNotes[0], isWildcard: false });
         } else {
             // Random selection from available notes
             const randomIndex = Math.floor(Math.random() * availableNotes.length);
-            sequence.push(availableNotes[randomIndex]);
+            sequence.push({ note: availableNotes[randomIndex], isWildcard: false });
         }
+    }
+
+    // Add wildcards at the end - random notes but displayed as white
+    for (let i = 0; i < wildcardCount; i++) {
+        const randomIndex = Math.floor(Math.random() * availableNotes.length);
+        sequence.push({ note: availableNotes[randomIndex], isWildcard: true });
     }
 
     return sequence;

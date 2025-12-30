@@ -51,6 +51,7 @@ export class Preloader extends Scene
         this.load.image('enemy-G', 'enemies/enemy-G.png');
         this.load.image('enemy-A', 'enemies/enemy-A.png');
         this.load.image('enemy-B', 'enemies/enemy-B.png');
+        this.load.image('enemy-white', 'enemies/enemy-white.png'); // Wildcard enemy
     }
 
     create ()
