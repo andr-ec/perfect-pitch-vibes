@@ -322,22 +322,16 @@ export class PitchJump extends Scene {
         });
     }
 
-    private onWrongNote(enemy: Enemy): void {
+    private onWrongNote(_enemy: Enemy): void {
         // Play wrong sound (soft thud)
         audioManager.playWrongSound();
 
-        // Replay the correct note after a short delay
-        this.time.delayedCall(300, () => {
-            audioManager.playNote(enemy.note);
-        });
+        // Hide instruction while moving back
+        this.instructionText.setVisible(false);
 
-        // Visual feedback - shake the instruction text slightly
-        this.tweens.add({
-            targets: this.instructionText,
-            x: this.instructionText.x + 5,
-            duration: 50,
-            yoyo: true,
-            repeat: 3,
+        // Move the player back, then resume walking
+        this.player.moveBack(40, () => {
+            this.gameState = GameState.WALKING;
         });
     }
 

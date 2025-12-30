@@ -144,6 +144,27 @@ export class Player {
         this.sprite.x = x;
     }
 
+    moveBack(distance: number = 40, onComplete?: () => void): void {
+        // Play left-walking animation while moving back
+        this.sprite.play('player-walk-left');
+
+        // Tween the player backward
+        this.scene.tweens.add({
+            targets: this,
+            x: this.x - distance,
+            duration: 200,
+            ease: 'Quad.easeOut',
+            onUpdate: () => {
+                this.sprite.x = this.x;
+            },
+            onComplete: () => {
+                this.state = PlayerState.WALKING;
+                this.sprite.play('player-walk-right');
+                if (onComplete) onComplete();
+            }
+        });
+    }
+
     destroy(): void {
         this.sprite.destroy();
     }
