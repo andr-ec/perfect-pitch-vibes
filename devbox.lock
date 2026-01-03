@@ -85,6 +85,54 @@
           "store_path": "/nix/store/mky5s5bvvrpfv23fhnmk9ammk1vd70hg-nodejs-25.2.1"
         }
       }
+    },
+    "wrangler@latest": {
+      "last_modified": "2025-12-27T03:48:10Z",
+      "resolved": "github:NixOS/nixpkgs/4eec65df50d796a8fd9c146a09b5007916ce376b#wrangler",
+      "source": "devbox-search",
+      "version": "4.54.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3l6fbcma17lw4mc3fph9sjxyqkywa8jy-wrangler-4.54.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3l6fbcma17lw4mc3fph9sjxyqkywa8jy-wrangler-4.54.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/51p4l2j7yxd2iy7z4vpz83di3krlnkqm-wrangler-4.54.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/51p4l2j7yxd2iy7z4vpz83di3krlnkqm-wrangler-4.54.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wlwn848q0vkddkrxmd4q8hc4wd18pcrm-wrangler-4.54.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/wlwn848q0vkddkrxmd4q8hc4wd18pcrm-wrangler-4.54.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/h70laqlqfvb206kvm70fdzyniwczsx2b-wrangler-4.54.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/h70laqlqfvb206kvm70fdzyniwczsx2b-wrangler-4.54.0"
+        }
+      }
     }
   }
 }
