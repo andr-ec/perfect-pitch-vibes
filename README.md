@@ -1,4 +1,9 @@
 # Phaser Vue TypeScript Template
+to deploy
+```sh
+npm run build
+wrangler pages deploy dist
+```
 
 This is a Phaser 3 project template that uses the Vue framework, TypeScript and Vite for bundling. It includes a bridge for Vue to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
 
